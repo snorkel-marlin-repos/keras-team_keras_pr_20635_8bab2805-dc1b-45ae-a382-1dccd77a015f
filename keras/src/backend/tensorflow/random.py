@@ -94,11 +94,15 @@ def dropout(inputs, rate, noise_shape=None, seed=None):
 
 
 def shuffle(x, axis=0, seed=None):
+    from keras.src.backend.tensorflow.numpy import swapaxes
+
     seed = _cast_seed(draw_seed(seed))
-    indices = tf.argsort(
-        tf.random.stateless_uniform(shape=[tf.shape(x)[axis]], seed=seed)
-    )
-    return tf.gather(x, indices, axis=axis)
+    if axis == 0:
+        return tf.random.experimental.stateless_shuffle(x, seed=seed)
+    x = swapaxes(x, axis1=0, axis2=axis)
+    x = tf.random.experimental.stateless_shuffle(x, seed=seed)
+    x = swapaxes(x, axis1=0, axis2=axis)
+    return x
 
 
 def gamma(shape, alpha, dtype=None, seed=None):
